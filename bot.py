@@ -65,7 +65,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     all_users.add(user_id)
     
     # Bottom Keyboard Setup
-    keyboard = [["🎁 CLAIM YOUR FREE PREMIUM GOLD VIP ACCESS NOW"]]
+    keyboard = [["🎁 Claim Your FREE Premium Gold VIP Access Now"]]
     
     # Show Admin Button ONLY to the Admin
     if user_id == ADMIN_ID:
@@ -83,7 +83,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 2. Join Message
     join_kb = [[InlineKeyboardButton("✅ JOIN WHATSAPP CHANNEL", url=WHATSAPP_LINK)]]
     await update.message.reply_text(
-        text="<b>JOIN OUR OFFICIAL WHATSAPP CHANNEL BELOW: 👇</b>",
+        text="<b>Join Whatsapp Channel 👇👇: 👇</b>",
         parse_mode='HTML',
         reply_markup=InlineKeyboardMarkup(join_kb)
     )
@@ -100,8 +100,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
     # User Request Access
-    if text == "🎁 CLAIM YOUR FREE PREMIUM GOLD VIP ACCESS NOW":
-        response_text = f"<b>🚀 UNLOCK YOUR FREE PREMIUM GOLD VIP MEMBERSHIP NOW!</b>"
+    if text == "🎁 Claim Your FREE Premium Gold VIP Access Now":
+        response_text = f"<b>🚀 Unlock Your FREE Premium Gold VIP Membership</b>"
         website_button = [[InlineKeyboardButton("✅ ACCESS NOW", url=WEBSITE_LINK)]]
         await update.message.reply_text(
             text=response_text,
