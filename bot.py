@@ -10,29 +10,30 @@ ADMIN_ID = 5072932186
 WHATSAPP_LINK = "https://whatsapp.com/channel/0029Vb5eRVjGzzKNnL7c050y"
 WEBSITE_LINK = "https://www.brokeraccountguide.com"
 
-# Users list (Memory mein save hogi, behtar hai isay file ya database mein save karein)
+# Temporary storage for active users
 all_users = set()
 
 # ================= FUNCTIONS =================
 
-async def send_reminder(context: ContextTypes.DEFAULT_TYPE):
-    """Mon-Fri: Auto Reminder (15 mins interval)"""
+async def send_daily_reminder(context: ContextTypes.DEFAULT_TYPE):
+    """Mon-Fri: Professional Daily Setup Reminder"""
     today = datetime.datetime.now().weekday()
     
-    # 5 = Saturday, 6 = Sunday. Weekend par auto band.
+    # 0=Mon, 4=Fri. (Auto-stop on Sat/Sun)
     if today >= 5:
         return
 
     text = (
-        "<b>⚠️ Don't Miss Today's Gold Setup!</b>\n\n"
-        "Join now & copy trades:\n"
-        "👇👇"
+        "<b>⚠️ DON'T MISS TODAY'S GOLD SETUP!</b>\n\n"
+        "<b>JOIN NOW & COPY OUR PROFESSIONAL TRADES:</b>\n"
+        "<b>👇👇👇</b>"
     )
-    join_kb = [[InlineKeyboardButton("JOIN WHATSAPP NOW 👇✅", url=WHATSAPP_LINK)]]
+    join_kb = [[InlineKeyboardButton("✅ JOIN WHATSAPP NOW", url=WHATSAPP_LINK)]]
     
+    chat_id = context.job.chat_id
     try:
         await context.bot.send_message(
-            chat_id=context.job.chat_id,
+            chat_id=chat_id,
             text=text,
             parse_mode='HTML',
             reply_markup=InlineKeyboardMarkup(join_kb)
@@ -40,14 +41,14 @@ async def send_reminder(context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
-async def sunday_offer_job(context: ContextTypes.DEFAULT_TYPE):
-    """Sunday: Auto Weekend Offer at 12:00 PM"""
+async def send_sunday_offer(context: ContextTypes.DEFAULT_TYPE):
+    """Sunday: Automatic Premium Weekend Offer"""
     text = (
-        "<b>Weekend Offer 🎁</b>\n\n"
-        "Get <b>FREE VIP Gold Signals Access</b> 🚀\n"
-        "Limited Time Only!\n\n"
-        "<b>Join Now:</b>\n"
-        f"{WEBSITE_LINK}"
+        "<b>🎁 WEEKEND SPECIAL OFFER 🎁</b>\n\n"
+        "<b>GET FREE VIP GOLD SIGNALS ACCESS 🚀</b>\n"
+        "<b>LIMITED TIME ONLY!</b>\n\n"
+        "<b>JOIN NOW:</b>\n"
+        f"<b>{WEBSITE_LINK}</b>"
     )
     for user_id in all_users:
         try:
@@ -59,78 +60,89 @@ async def sunday_offer_job(context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    user_name = update.effective_user.first_name
     chat_id = update.effective_chat.id
     all_users.add(user_id)
     
-    # Admin & User Buttons
-    keyboard = [["🎁 Claim Your FREE Premium Gold VIP Access Now"]]
-    if user_id == ADMIN_ID:
-        keyboard.append(["📢 Admin: Broadcast / Report"])
+    # Bottom Keyboard Setup
+    keyboard = [["🎁 CLAIM YOUR FREE PREMIUM GOLD VIP ACCESS NOW"]]
     
+    # Show Admin Button ONLY to the Admin
+    if user_id == ADMIN_ID:
+        keyboard.append(["📢 ADMIN: BROADCAST / WEEKLY REPORT"])
+        
     reply_kb = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     
+    # 1. Professional Greeting
     await update.message.reply_text(
-        text=f"Welcome, <b>{update.effective_user.first_name}</b>!", 
+        text=f"<b>HEY, {user_name.upper()}! ⚡</b>\n\n<b>WELCOME TO THE ELITE GOLD TRADING HUB.</b>", 
         parse_mode='HTML',
         reply_markup=reply_kb
     )
+    
+    # 2. Join Message
+    join_kb = [[InlineKeyboardButton("✅ JOIN WHATSAPP CHANNEL", url=WHATSAPP_LINK)]]
+    await update.message.reply_text(
+        text="<b>JOIN OUR OFFICIAL WHATSAPP CHANNEL BELOW: 👇</b>",
+        parse_mode='HTML',
+        reply_markup=InlineKeyboardMarkup(join_kb)
+    )
 
-    # Mon-Fri Reminders Setup (900s = 15m)
+    # --- MON-FRI REMINDER SETUP (Every 15 Minutes) ---
     current_jobs = context.job_queue.get_jobs_by_name(str(chat_id))
     for job in current_jobs:
         job.schedule_removal()
-    
-    context.job_queue.run_repeating(send_reminder, interval=900, first=900, chat_id=chat_id, name=str(chat_id))
+
+    context.job_queue.run_repeating(send_daily_reminder, interval=900, first=900, chat_id=chat_id, name=str(chat_id))
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     text = update.message.text
 
-    # 1. User Claim Button
-    if text == "🎁 Claim Your FREE Premium Gold VIP Access Now":
-        btn = [[InlineKeyboardButton("JOIN NOW ✅", url=WEBSITE_LINK)]]
+    # User Request Access
+    if text == "🎁 CLAIM YOUR FREE PREMIUM GOLD VIP ACCESS NOW":
+        response_text = f"<b>🚀 UNLOCK YOUR FREE PREMIUM GOLD VIP MEMBERSHIP NOW!</b>"
+        website_button = [[InlineKeyboardButton("✅ ACCESS NOW", url=WEBSITE_LINK)]]
         await update.message.reply_text(
-            text="🚀 Unlock Your FREE Premium Gold VIP Membership",
+            text=response_text,
             parse_mode='HTML',
-            reply_markup=InlineKeyboardMarkup(btn)
+            reply_markup=InlineKeyboardMarkup(website_button)
         )
 
-    # 2. Admin Broadcast Trigger
-    elif text == "📢 Admin: Broadcast / Report" and user_id == ADMIN_ID:
+    # Admin Broadcast Trigger
+    elif text == "📢 ADMIN: BROADCAST / WEEKLY REPORT" and user_id == ADMIN_ID:
         await update.message.reply_text(
-            "<b>Broadcast Mode ON! 🛠</b>\n\nAb aap jo bhi type karke bhejenge, wo saare users ko send ho jayega.",
+            "<b>🛠 BROADCAST MODE ACTIVATED!</b>\n\n"
+            "<b>TYPE YOUR WEEKLY REPORT OR ANY MESSAGE BELOW. IT WILL BE SENT TO ALL SUBSCRIBERS.</b>",
             parse_mode='HTML'
         )
         context.user_data['state'] = 'BROADCASTING'
 
-    # 3. Sending the Broadcast
+    # Admin Sending Message to Everyone
     elif context.user_data.get('state') == 'BROADCASTING' and user_id == ADMIN_ID:
         count = 0
         for uid in all_users:
             try:
-                # Forwarding whatever admin typed
-                await context.bot.send_message(chat_id=uid, text=text, parse_mode='HTML')
+                # We send exactly what the admin typed (supports bold/formatting if admin uses it)
+                await context.bot.send_message(chat_id=uid, text=f"<b>{text}</b>", parse_mode='HTML')
                 count += 1
             except:
                 pass
         
-        await update.message.reply_text(f"✅ Broadcast Sent to {count} users.")
-        context.user_data['state'] = None # Mode off
+        await update.message.reply_text(f"<b>✅ BROADCAST SUCCESSFUL! SENT TO {count} USERS.</b>", parse_mode='HTML')
+        context.user_data['state'] = None
 
 # ================= MAIN =================
 
 if __name__ == "__main__":
-    if not BOT_TOKEN:
-        print("Error: BOT_TOKEN is missing!")
-    else:
-        app = ApplicationBuilder().token(BOT_TOKEN).build()
-        
-        # Schedule Sunday Auto Offer at 12:00 PM (Days 6 = Sunday)
-        app.job_queue.run_daily(sunday_offer_job, time=datetime.time(hour=12, minute=0), days=(6,))
-
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        
-        print("Bot is LIVE (Premium Gold Machine)...")
-        app.run_polling(drop_pending_updates=True)
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    
+    # Automatic Sunday Offer at 12:00 PM
+    app.job_queue.run_daily(send_sunday_offer, time=datetime.time(hour=12, minute=0), days=(6,))
+    
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    print("Bot is LIVE (Elite Admin Version)...")
+    app.run_polling(drop_pending_updates=True)
     
